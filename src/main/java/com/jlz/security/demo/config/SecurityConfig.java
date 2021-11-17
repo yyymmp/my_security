@@ -37,30 +37,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .roles("admin");
     }
 
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //自定义表单登录
-        http
+        http.authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
                 .formLogin()
                 .loginPage("/login.html")
-                //登录页放行
                 .permitAll()
-        .and()
-        .authorizeRequests()
-                //所有请求都要经过验证
-                .anyRequest()
-                .authenticated()
-                //设置自定义登录页
                 .and()
-                .csrf()
-                .disable()
-        ;
+                .csrf().disable();
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
         //放心静态资源文件
         web.ignoring().antMatchers("/js/**", "/css/**","/images/**");
+//        web.ignoring().antMatchers("/static/js/**", "/static/css/**","/static/images/**");
     }
 }
