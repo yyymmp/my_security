@@ -19,6 +19,22 @@ public class HelloController {
         return "hello";
     }
 
+
+    @GetMapping("/commonHello")
+    public String commonHello() {
+        return "hello";
+    }
+
+    @GetMapping("/admin/hello")
+    public String admin() {
+        return "admin";
+    }
+
+    @GetMapping("/user/hello")
+    public String user() {
+        return "user";
+    }
+
     @GetMapping("/hello")
     public String login(){
         System.out.println("get login");

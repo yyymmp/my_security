@@ -4,12 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -30,23 +35,40 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return NoOpPasswordEncoder.getInstance();
     }
 
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        //基于内存的用户密码
+//        auth.inMemoryAuthentication()
+//                .withUser("admin")
+//                .password("123456")
+//                .roles("admin")
+//                .and()
+//                .withUser("jlz")
+//                .password("123456")
+//                .roles("user");
+//    }
+
+    /**
+     * 还是基于内存创建两个用户
+     * @return
+     */
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        //基于内存的用户密码
-        auth.inMemoryAuthentication()
-                .withUser("admin")
-                .password("123456")
-                .roles("admin")
-                .and()
-                .withUser("jlz")
-                .password("123456")
-                .roles("admin");
+    @Bean
+    protected UserDetailsService userDetailsService() {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("admin").password("123").roles("admin").build());
+        manager.createUser(User.withUsername("jlz").password("123").roles("user").build());
+        return manager;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //自定义表单登录
         http.authorizeRequests()
+                //设置授权 按照顺序
+                .antMatchers("/admin/**").hasAnyRole("admin")
+                .antMatchers("/user/**").hasAnyRole("user")
+                //其他通过登录即可访问
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
@@ -113,5 +135,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         //放行静态资源文件
         web.ignoring().antMatchers("/js/**", "/css/**", "/images/**");
+    }
+
+    @Bean
+    RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+        hierarchy.setHierarchy("ROLE_admin > ROLE_user");
+        return hierarchy;
     }
 }
