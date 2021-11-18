@@ -2,6 +2,7 @@ package com.jlz.security.demo.config;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jlz.security.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +39,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return NoOpPasswordEncoder.getInstance();
     }
 
-//    @Override
+    @Autowired
+    UserService userService;
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userService);
+    }
+
+    //    @Override
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //        //基于内存的用户密码
 //        auth.inMemoryAuthentication()
@@ -51,28 +60,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .roles("user");
 //    }
 
-    @Autowired
-    DataSource dataSource;
-
-    /**
-     * 基于内存创建两个用户
-     * 基于数据库操作
-     * @return
-     */
-    @Override
-    @Bean
-    protected UserDetailsService userDetailsService() {
-        JdbcUserDetailsManager  manager = new JdbcUserDetailsManager(dataSource);
-        manager.setDataSource(dataSource);
-        //项目运行一次执行一次 插入到数据库
-        if (!manager.userExists("admin")) {
-            manager.createUser(User.withUsername("admin").password("123").roles("admin").build());
-        }
-        if (!manager.userExists("jlz")) {
-            manager.createUser(User.withUsername("jlz").password("123").roles("user").build());
-        }
-        return manager;
-    }
+//    @Autowired
+//    DataSource dataSource;
+//
+//    /**
+//     * 基于内存创建两个用户
+//     * 基于数据库操作
+//     * @return
+//     */
+//    @Override
+//    @Bean
+//    protected UserDetailsService userDetailsService() {
+//        JdbcUserDetailsManager  manager = new JdbcUserDetailsManager(dataSource);
+//        manager.setDataSource(dataSource);
+//        //项目运行一次执行一次 插入到数据库
+//        if (!manager.userExists("admin")) {
+//            manager.createUser(User.withUsername("admin").password("123").roles("admin").build());
+//        }
+//        if (!manager.userExists("jlz")) {
+//            manager.createUser(User.withUsername("jlz").password("123").roles("user").build());
+//        }
+//        return manager;
+//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
