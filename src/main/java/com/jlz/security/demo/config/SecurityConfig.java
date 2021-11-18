@@ -2,6 +2,7 @@ package com.jlz.security.demo.config;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -15,7 +16,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
+import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,16 +51,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .roles("user");
 //    }
 
+    @Autowired
+    DataSource dataSource;
+
     /**
-     * 还是基于内存创建两个用户
+     * 基于内存创建两个用户
+     * 基于数据库操作
      * @return
      */
     @Override
     @Bean
     protected UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("admin").password("123").roles("admin").build());
-        manager.createUser(User.withUsername("jlz").password("123").roles("user").build());
+        JdbcUserDetailsManager  manager = new JdbcUserDetailsManager(dataSource);
+        manager.setDataSource(dataSource);
+        //项目运行一次执行一次 插入到数据库
+        if (!manager.userExists("admin")) {
+            manager.createUser(User.withUsername("admin").password("123").roles("admin").build());
+        }
+        if (!manager.userExists("jlz")) {
+            manager.createUser(User.withUsername("jlz").password("123").roles("user").build());
+        }
         return manager;
     }
 
