@@ -45,6 +45,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin()
                 .loginPage("/login.html")
+                .loginProcessingUrl("/doLogin")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successForwardUrl("/ok")
+                .failureForwardUrl("/fail")
+                .permitAll()
+                .and()
+                .logout()
+                //默认就是logout get请求
+//                .logoutUrl("/logout")
+                //注销登录成功之后的跳转地址
+                .logoutSuccessUrl("/login.html")
+                //放行相关接口
                 .permitAll()
                 .and()
                 .csrf().disable();
@@ -52,8 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        //放心静态资源文件
+        //放行静态资源文件
         web.ignoring().antMatchers("/js/**", "/css/**","/images/**");
-//        web.ignoring().antMatchers("/static/js/**", "/static/css/**","/static/images/**");
     }
 }
